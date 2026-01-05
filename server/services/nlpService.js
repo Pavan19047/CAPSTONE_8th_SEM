@@ -173,7 +173,7 @@ const trainClassifier = () => {
 };
 
 /**
- * Save classifier to disk
+ * Save classifier to disk (async but non-blocking)
  */
 const saveClassifier = (classifier) => {
   try {
@@ -182,37 +182,32 @@ const saveClassifier = (classifier) => {
       fs.mkdirSync(dataDir, { recursive: true });
     }
     
-    // Save synchronously
-    const classifierData = JSON.stringify(classifier);
-    fs.writeFileSync(CLASSIFIER_PATH, classifierData, 'utf8');
-    console.log('💾 Classifier saved to:', CLASSIFIER_PATH);
-    console.log('');
+    // Save asynchronously (non-blocking)
+    classifier.save(CLASSIFIER_PATH, (err) => {
+      if (err) {
+        console.error('❌ Error saving classifier:', err);
+      } else {
+        console.log('💾 Classifier saved to:', CLASSIFIER_PATH);
+        console.log('');
+      }
+    });
   } catch (error) {
     console.error('❌ Error in saveClassifier:', error);
   }
 };
 
 /**
- * Load classifier from disk or train new one
+ * Load classifier from disk or train new one (synchronous)
  */
 const loadOrTrainClassifier = () => {
-  try {
-    if (fs.existsSync(CLASSIFIER_PATH)) {
-      console.log('📂 Loading existing classifier...');
-      const classifier = BayesClassifier.restore(JSON.parse(fs.readFileSync(CLASSIFIER_PATH, 'utf8')));
-      console.log(`✅ Classifier loaded successfully (${trainingData.length} samples)\n`);
-      return classifier;
-    } else {
-      console.log('🆕 No saved classifier found. Training new classifier...\n');
-      const classifier = trainClassifier();
-      saveClassifier(classifier);
-      return classifier;
-    }
-  } catch (error) {
-    console.error('❌ Error in loadOrTrainClassifier:', error);
-    console.log('🔄 Falling back to training new classifier...\n');
-    return trainClassifier();
-  }
+  console.log('🔧 Initializing classifier...\n');
+  
+  // Always train fresh for now (fast with 70 samples)
+  // This ensures the classifier is always properly initialized
+  const classifier = trainClassifier();
+  saveClassifier(classifier); // Save async
+  
+  return classifier;
 };
 
 /**
