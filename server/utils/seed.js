@@ -72,8 +72,8 @@ const seedData = async () => {
       },
       {
         title: 'VPN Connection Issues',
-        category: 'VPN Issue',
-        keywords: ['vpn', 'connection', 'remote', 'access'],
+        category: 'VPN Issues',
+        keywords: ['vpn', 'connection', 'remote', 'access', 'timeout', 'tunnel'],
         problem: 'Cannot connect to VPN from home',
         solution: 'Try these troubleshooting steps to resolve VPN connection issues',
         steps: [
@@ -89,8 +89,8 @@ const seedData = async () => {
       },
       {
         title: 'Request Software Installation',
-        category: 'Software Access',
-        keywords: ['software', 'install', 'application', 'access'],
+        category: 'Software Installation',
+        keywords: ['software', 'install', 'application', 'access', 'license', 'adobe', 'microsoft'],
         problem: 'Need to install new software for work',
         solution: 'Submit a software installation request through the portal',
         steps: [
@@ -106,8 +106,8 @@ const seedData = async () => {
       },
       {
         title: 'Printer Not Working',
-        category: 'Hardware Issue',
-        keywords: ['printer', 'print', 'hardware', 'not working', 'printing'],
+        category: 'Hardware Issues',
+        keywords: ['printer', 'print', 'hardware', 'not working', 'printing', 'paper jam'],
         problem: 'Printer is not responding or printing',
         solution: 'Follow these steps to troubleshoot printer issues',
         steps: [
@@ -123,8 +123,8 @@ const seedData = async () => {
       },
       {
         title: 'Laptop Not Starting or Booting',
-        category: 'Hardware Issue',
-        keywords: ['laptop', 'not starting', 'wont start', 'boot', 'power', 'startup', 'not booting', 'wont boot'],
+        category: 'Hardware Issues',
+        keywords: ['laptop', 'not starting', 'wont start', 'boot', 'power', 'startup', 'not booting', 'wont boot', 'screen', 'display'],
         problem: 'Laptop will not power on or start up properly',
         solution: 'Follow these troubleshooting steps to diagnose and fix laptop startup issues',
         steps: [
@@ -141,8 +141,8 @@ const seedData = async () => {
       },
       {
         title: 'Slow Network Connection',
-        category: 'Network Issue',
-        keywords: ['network', 'slow', 'internet', 'connection'],
+        category: 'Network Issues',
+        keywords: ['network', 'slow', 'internet', 'connection', 'wifi', 'ethernet', 'speed'],
         problem: 'Internet is very slow or keeps disconnecting',
         solution: 'Try these steps to improve network performance',
         steps: [
@@ -155,17 +155,85 @@ const seedData = async () => {
         views: 156,
         helpful: 112,
         notHelpful: 7
+      },
+      {
+        title: 'Email Not Syncing on Mobile Device',
+        category: 'Email Issues',
+        keywords: ['email', 'sync', 'syncing', 'mobile', 'phone', 'outlook', 'mail'],
+        problem: 'Work email is not syncing on mobile device or phone',
+        solution: 'Follow these steps to fix email sync issues on your mobile device',
+        steps: [
+          'Check your internet connection on the device',
+          'Open the Mail app settings and verify account configuration',
+          'Remove the email account and re-add it',
+          'Ensure background app refresh is enabled for Mail',
+          'Check if your IT department has blocked mobile access'
+        ],
+        views: 198,
+        helpful: 167,
+        notHelpful: 11
+      },
+      {
+        title: 'WiFi Connection Dropping Frequently',
+        category: 'Network Issues',
+        keywords: ['wifi', 'disconnecting', 'dropping', 'wireless', 'connection', 'unstable'],
+        problem: 'WiFi keeps disconnecting or dropping connection frequently',
+        solution: 'Follow these troubleshooting steps to fix WiFi connectivity issues',
+        steps: [
+          'Forget the WiFi network and reconnect',
+          'Move closer to the WiFi access point',
+          'Check if other devices are experiencing the same issue',
+          'Restart your computer and router',
+          'Update your network adapter drivers'
+        ],
+        views: 134,
+        helpful: 98,
+        notHelpful: 6
+      },
+      {
+        title: 'Computer Making Strange Noises',
+        category: 'Hardware Issues',
+        keywords: ['noise', 'sound', 'buzzing', 'fan', 'loud', 'computer', 'laptop', 'strange'],
+        problem: 'Computer or laptop making strange buzzing or loud noises',
+        solution: 'Diagnose and address unusual computer noises',
+        steps: [
+          'Identify where the noise is coming from (fan, hard drive, speakers)',
+          'Clean dust from fans and vents using compressed air',
+          'Check if the noise occurs during heavy usage only',
+          'Ensure the laptop is on a hard flat surface for proper ventilation',
+          'If noise persists, contact hardware support for inspection'
+        ],
+        views: 87,
+        helpful: 72,
+        notHelpful: 5
+      },
+      {
+        title: 'Forgot Password - Account Recovery',
+        category: 'Password Reset',
+        keywords: ['forgot', 'password', 'reset', 'account', 'recovery', 'locked', 'login'],
+        problem: 'I forgot my password and cannot access my account',
+        solution: 'Recover your account using the self-service password reset',
+        steps: [
+          'Go to the password reset portal',
+          'Enter your username or email address',
+          'Answer security questions or use backup email',
+          'Create a new strong password',
+          'Login with your new password'
+        ],
+        views: 312,
+        helpful: 289,
+        notHelpful: 8
       }
     ]);
 
     console.log('📚 Created knowledge base articles');
 
-    // Create sample tickets
-    const tickets = await Ticket.create([
+    // Create sample tickets sequentially to avoid race on ticket number generation
+    const ticketData = [
       {
         title: 'Cannot access VPN',
         description: 'I am trying to connect to VPN from home but getting connection timeout error. Need urgent help as I have a meeting in 30 minutes.',
-        category: 'VPN Issue',
+        category: 'VPN Issues',
         priority: 'urgent',
         status: 'open',
         createdBy: users[0]._id,
@@ -184,7 +252,7 @@ const seedData = async () => {
       {
         title: 'Need Adobe Photoshop license',
         description: 'I need Adobe Photoshop installed for design work. Manager has approved.',
-        category: 'Software Access',
+        category: 'Software Installation',
         priority: 'medium',
         status: 'open',
         createdBy: users[0]._id,
@@ -193,7 +261,7 @@ const seedData = async () => {
       {
         title: 'Laptop screen flickering',
         description: 'My laptop screen started flickering this morning. It is getting worse.',
-        category: 'Hardware Issue',
+        category: 'Hardware Issues',
         priority: 'high',
         status: 'in-progress',
         createdBy: users[0]._id,
@@ -203,7 +271,7 @@ const seedData = async () => {
       {
         title: 'Email not syncing on phone',
         description: 'My work email is not syncing on my mobile device. Last sync was 2 days ago.',
-        category: 'Email Issue',
+        category: 'Email Issues',
         priority: 'medium',
         status: 'resolved',
         createdBy: users[0]._id,
@@ -212,7 +280,11 @@ const seedData = async () => {
         resolutionNotes: 'Reconfigured email account on mobile device. Issue resolved.',
         assignedTeam: 'IT Support'
       }
-    ]);
+    ];
+
+    for (const t of ticketData) {
+      await Ticket.create(t);
+    }
 
     console.log('🎫 Created sample tickets');
 

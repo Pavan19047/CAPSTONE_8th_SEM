@@ -16,7 +16,7 @@ const ticketSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Password Reset', 'VPN Issue', 'Software Access', 'Hardware Issue', 'Network Issue', 'Email Issue', 'Other'],
+    enum: ['Password Reset', 'VPN Issues', 'Software Installation', 'Hardware Issues', 'Network Issues', 'Email Issues', 'Other'],
     default: 'Other'
   },
   priority: {

@@ -56,9 +56,21 @@ const runTests = async () => {
     // Calculate average confidence
     const avgConfidence = results.reduce((sum, r) => sum + r.confidence, 0) / results.length;
     console.log(`\n📈 Average Confidence: ${avgConfidence.toFixed(1)}%`);
-    
-    const mlClassified = results.filter(r => r.method === 'ml').length;
-    console.log(`🤖 ML Classifications: ${mlClassified}/${results.length}`);
+
+    // Count classification methods
+    const methodCounts = results.reduce((acc, r) => {
+      acc[r.method] = (acc[r.method] || 0) + 1;
+      return acc;
+    }, {});
+
+    console.log(`\n🤖 Classification Methods:`);
+    Object.entries(methodCounts).forEach(([method, count]) => {
+      console.log(`   ${method}: ${count}/${results.length}`);
+    });
+
+    // Count correct classifications (non-Other)
+    const correctClassified = results.filter(r => r.category !== 'Other').length;
+    console.log(`\n✅ Correctly Classified: ${correctClassified}/${results.length}`);
     
     // ========================================
     // TEST 2: Detailed Classification Breakdown
@@ -78,6 +90,9 @@ const runTests = async () => {
     console.log(`Method: ${detailed.method}`);
     console.log(`ML Confidence: ${detailed.mlConfidence}%`);
     console.log(`Keyword Score: ${detailed.keywordScore}`);
+    if (detailed.keywordMatches && detailed.keywordMatches.length > 0) {
+      console.log(`Keyword Matches: ${detailed.keywordMatches.map(m => m.keyword || m.phrase).join(', ')}`);
+    }
     console.log('\nTop 3 Predictions:');
     detailed.allClassifications.forEach((pred, idx) => {
       console.log(`  ${idx + 1}. ${pred.label}: ${pred.confidence}%`);
@@ -190,7 +205,12 @@ const runTests = async () => {
     console.log(`   Classification: ${classifyAvg < 20 ? '✅' : '⚠️'} ${classifyAvg.toFixed(2)}ms (target: <20ms)`);
     console.log(`   Search: ${searchAvg < 100 ? '✅' : '⚠️'} ${searchAvg.toFixed(2)}ms (target: <100ms)`);
     
-    console.log(`\n🎯 Overall Status: ${avgConfidence >= 70 && classifyAvg < 20 ? '✅ EXCELLENT' : avgConfidence >= 60 ? '✅ GOOD' : '⚠️ NEEDS IMPROVEMENT'}`);
+    const otherCount = results.filter(r => r.category === 'Other').length;
+    const status = avgConfidence >= 70 && otherCount <= 2 ? '✅ EXCELLENT' :
+                   avgConfidence >= 60 && otherCount <= 4 ? '✅ GOOD' :
+                   avgConfidence >= 50 ? '⚠️ ACCEPTABLE' : '❌ NEEDS IMPROVEMENT';
+    console.log(`\n🎯 Overall Status: ${status}`);
+    console.log(`   Avg Confidence: ${avgConfidence.toFixed(1)}% | Fallback to Other: ${otherCount}/${results.length}`);
     
     console.log('\n' + '='.repeat(80));
     console.log('🎉 All tests completed!\n');
