@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { 
-  Clock, 
-  CheckCircle2, 
-  MessageSquare, 
+import {
+  CheckCircle2,
+  MessageSquare,
   User,
   Calendar,
   Tag
@@ -18,6 +17,9 @@ const TicketDetail = ({ ticketId, onUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
   const [addingComment, setAddingComment] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [resolutionNotes, setResolutionNotes] = useState('');
+  const [showResolveModal, setShowResolveModal] = useState(false);
 
   useEffect(() => {
     loadTicket();
@@ -51,6 +53,42 @@ const TicketDetail = ({ ticketId, onUpdate }) => {
     }
   };
 
+  const handleStatusChange = async (newStatus) => {
+    if (newStatus === 'resolved') {
+      setShowResolveModal(true);
+      return;
+    }
+
+    try {
+      setUpdatingStatus(true);
+      await ticketService.updateStatus(ticketId, { status: newStatus });
+      await loadTicket();
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Error updating status:', error);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleResolve = async () => {
+    try {
+      setUpdatingStatus(true);
+      await ticketService.updateStatus(ticketId, {
+        status: 'resolved',
+        resolutionNotes: resolutionNotes
+      });
+      setShowResolveModal(false);
+      setResolutionNotes('');
+      await loadTicket();
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      console.error('Error resolving ticket:', error);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -76,10 +114,27 @@ const TicketDetail = ({ ticketId, onUpdate }) => {
     >
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant="primary">{ticket.ticketNumber}</Badge>
-          <Badge variant={ticket.status}>{ticket.status}</Badge>
-          <Badge variant={ticket.priority}>{ticket.priority}</Badge>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Badge variant="primary">{ticket.ticketNumber}</Badge>
+            <Badge variant={ticket.status}>{ticket.status}</Badge>
+            <Badge variant={ticket.priority}>{ticket.priority}</Badge>
+          </div>
+
+          {/* Status Change Dropdown */}
+          {ticket.status !== 'closed' && (
+            <select
+              value={ticket.status}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              disabled={updatingStatus}
+              className="input-field text-sm py-1 px-3 w-auto"
+            >
+              <option value="open">Open</option>
+              <option value="in-progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+          )}
         </div>
         <h2 className="text-2xl font-bold text-text-primary mb-2">{ticket.title}</h2>
         <p className="text-text-secondary">{ticket.description}</p>
@@ -218,6 +273,55 @@ const TicketDetail = ({ ticketId, onUpdate }) => {
           </Button>
         </div>
       </div>
+
+      {/* Resolve Modal */}
+      {showResolveModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setShowResolveModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-primary-card p-6 rounded-xl border border-gray-700 w-full max-w-md mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <CheckCircle2 className="w-6 h-6 text-accent-success" />
+              <h3 className="text-xl font-bold text-text-primary">Resolve Ticket</h3>
+            </div>
+
+            <p className="text-text-secondary mb-4">
+              Add resolution notes to help the user understand how the issue was resolved.
+            </p>
+
+            <textarea
+              value={resolutionNotes}
+              onChange={(e) => setResolutionNotes(e.target.value)}
+              placeholder="Describe how the issue was resolved..."
+              rows={4}
+              className="input-field resize-none mb-4"
+            />
+
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="secondary"
+                onClick={() => setShowResolveModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleResolve}
+                loading={updatingStatus}
+              >
+                Resolve Ticket
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
